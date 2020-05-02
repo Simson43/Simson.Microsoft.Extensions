@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Authors>Simson43</Authors>
+    <RepositoryUrl>https://github.com/Simson43/Simson.Microsoft.Extensions</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
