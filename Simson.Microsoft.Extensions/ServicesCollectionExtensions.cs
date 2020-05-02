@@ -23,34 +23,47 @@ namespace Simson.Microsoft.Extensions
             return services.Configure<TOptions>(configSection);
         }
 
-        public static void AddEachImplementation<TService>(this IServiceCollection services, ServiceLifetime lifetime)
+        public static void AddImplementationsToSelf<TService>(this IServiceCollection services, ServiceLifetime lifetime)
         {
             var curAssembly = Assembly.GetEntryAssembly();
-            AddEachImplementation<TService>(services, lifetime, curAssembly);
+            AddImplementationsToSelf<TService>(services, lifetime, curAssembly);
         }
 
-        public static void AddEachImplementation<TService>(this IServiceCollection services, ServiceLifetime lifetime, params Assembly[] assemblies)
+        public static void AddImplementationsToSelf<TService>(this IServiceCollection services, ServiceLifetime lifetime, params Assembly[] assemblies)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
             var types = GetAssignableTypes<TService>(assemblies);
-            foreach (var type in types)
-                services.Add(new ServiceDescriptor(type, lifetime));
+            services.AddServices(types, lifetime);
         }
 
-        public static void AddImplementations<TService>(this IServiceCollection services, ServiceLifetime lifetime)
+        public static void AddImplementationsAsArray<TService>(this IServiceCollection services, ServiceLifetime lifetime)
         {
             var curAssembly = Assembly.GetEntryAssembly();
-            AddImplementations<TService>(services, lifetime, curAssembly);
+            AddImplementationsAsArray<TService>(services, lifetime, curAssembly);
         }
 
-        public static void AddImplementations<TService>(this IServiceCollection services, ServiceLifetime lifetime, params Assembly[] assemblies)
+        public static void AddImplementationsAsArray<TService>(this IServiceCollection services, ServiceLifetime lifetime, params Assembly[] assemblies)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
             var types = GetAssignableTypes<TService>(assemblies);
-            var descriptor = new ServiceDescriptor(typeof(List<TService>), provider => provider.GetServices<TService>(), lifetime);
+            services.AddServices<TService>(types, lifetime);
+            var descriptor = new ServiceDescriptor(typeof(TService[]), provider => provider.GetServices<TService>(), lifetime);
             services.Add(descriptor);
+        }
+
+        private static void AddServices(this IServiceCollection services, List<Type> types, ServiceLifetime lifetime)
+        {
+            foreach (var type in types)
+                services.Add(new ServiceDescriptor(type, type, lifetime));
+        }
+        
+        private static void AddServices<TService>(this IServiceCollection services, List<Type> types, ServiceLifetime lifetime)
+        {
+            var serviceType = typeof(TService);
+            foreach (var type in types)
+                services.Add(new ServiceDescriptor(serviceType, type, lifetime));
         }
 
         private static List<Type> GetAssignableTypes<T>(params Assembly[] assemblies)
@@ -61,8 +74,10 @@ namespace Simson.Microsoft.Extensions
             var type = typeof(T);
             foreach (var assembly in assemblies)
             {
+                if (assembly == null)
+                    throw new ArgumentNullException($"Entries of {nameof(assemblies)} cannot be null");
                 var types = assembly.GetTypes()
-                    .Where(x => type.IsAssignableFrom(x));
+                    .Where(x => x.IsClass && !x.IsAbstract && type.IsAssignableFrom(x));
                 result.AddRange(types);
             }
             return result;
