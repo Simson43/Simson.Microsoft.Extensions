@@ -37,20 +37,18 @@ namespace Simson.Microsoft.Extensions
             services.AddServices(types, lifetime);
         }
 
-        public static void AddImplementationsAsArray<TService>(this IServiceCollection services, ServiceLifetime lifetime)
+        public static void AddImplementations<TService>(this IServiceCollection services, ServiceLifetime lifetime)
         {
             var curAssembly = Assembly.GetEntryAssembly();
-            AddImplementationsAsArray<TService>(services, lifetime, curAssembly);
+            AddImplementations<TService>(services, lifetime, curAssembly);
         }
 
-        public static void AddImplementationsAsArray<TService>(this IServiceCollection services, ServiceLifetime lifetime, params Assembly[] assemblies)
+        public static void AddImplementations<TService>(this IServiceCollection services, ServiceLifetime lifetime, params Assembly[] assemblies)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
             var types = GetAssignableTypes<TService>(assemblies);
             services.AddServices<TService>(types, lifetime);
-            var descriptor = new ServiceDescriptor(typeof(TService[]), provider => provider.GetServices<TService>(), lifetime);
-            services.Add(descriptor);
         }
 
         private static void AddServices(this IServiceCollection services, List<Type> types, ServiceLifetime lifetime)
