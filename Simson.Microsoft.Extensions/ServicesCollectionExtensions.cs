@@ -51,20 +51,20 @@ namespace Simson.Microsoft.Extensions
             services.AddServices<TService>(types, lifetime);
         }
 
-        private static void AddServices(this IServiceCollection services, List<Type> types, ServiceLifetime lifetime)
+        private static void AddServices(this IServiceCollection services, IEnumerable<Type> types, ServiceLifetime lifetime)
         {
             foreach (var type in types)
                 services.Add(new ServiceDescriptor(type, type, lifetime));
         }
         
-        private static void AddServices<TService>(this IServiceCollection services, List<Type> types, ServiceLifetime lifetime)
+        private static void AddServices<TService>(this IServiceCollection services, IEnumerable<Type> types, ServiceLifetime lifetime)
         {
             var serviceType = typeof(TService);
             foreach (var type in types)
                 services.Add(new ServiceDescriptor(serviceType, type, lifetime));
         }
 
-        private static List<Type> GetAssignableTypes<T>(params Assembly[] assemblies)
+        private static IEnumerable<Type> GetAssignableTypes<T>(params Assembly[] assemblies)
         {
             if (assemblies == null)
                 throw new ArgumentNullException(nameof(assemblies));
